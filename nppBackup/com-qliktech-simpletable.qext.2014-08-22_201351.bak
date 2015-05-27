@@ -1,0 +1,9 @@
+{
+	"name" : "Simple table",
+	"description" : "Simple table Extension Example",
+	"icon" : "table",
+	"type" : "visualization",
+	"version": "1.0",
+	"preview" : "table",
+	"author": "QlikTech International AB"
+}

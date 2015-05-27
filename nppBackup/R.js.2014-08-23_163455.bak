@@ -1,0 +1,110 @@
+define(["jquery", "text!./R.css","text!./opencpu-0.4.js"], function($, cssContent) {'use strict';
+	$("<style>").html(cssContent).appendTo("head");
+	return {
+		initialProperties : {
+			version: 1.0,
+			qHyperCubeDef : {
+				qDimensions : [],
+				qMeasures : [],
+				qInitialDataFetch : [{
+					qWidth : 10,
+					qHeight : 10
+				}]
+			}
+		},
+		definition : {
+			type : "items",
+			component : "accordion",
+			items : {
+				dimensions : {
+					uses : "dimensions",
+					min : 1
+				},
+				measures : {
+					uses : "measures",
+					min : 0
+				},
+				sorting : {
+					uses : "sorting"
+				},
+				settings : {
+					uses : "settings",
+					items : {
+						initFetchRows : {
+							ref : "qHyperCubeDef.qInitialDataFetch.0.qHeight",
+							label : "Initial fetch rows",
+							type : "number",
+							defaultValue : 10
+						},
+					}
+				}
+			}
+		},
+		snapshot : {
+			canTakeSnapshot : true
+		},
+		paint : function($element) {
+		   //Best Practice
+			var _this = this;
+			var html = "<table><thead><tr>", self = this, lastrow = 0, morebutton = false;
+			//render titles
+			$.each(this.backendApi.getDimensionInfos(), function(key, value) {
+				html += '<th>' + value.qFallbackTitle + '</th>';
+			});
+			$.each(this.backendApi.getMeasureInfos(), function(key, value) {
+				html += '<th>' + value.qFallbackTitle + '</th>';
+			});
+			html += "</tr></thead><tbody>";
+			//render data
+			this.backendApi.eachDataRow(function(rownum, row) {
+				lastrow = rownum;
+				html += '<tr>';
+				$.each(row, function(key, cell) {
+					if(cell.qIsOtherCell) {
+						cell.qText = self.backendApi.getDimensionInfos()[key].othersLabel;
+					}
+					html += '<td';
+					if(!isNaN(cell.qNum)) {
+						html += " class='numeric'";
+					}
+					html += '>' + cell.qText + '</td>';
+				});
+				html += '</tr>';
+			});
+			html += "</tbody></table>";
+			//add 'more...' button
+	
+			}
+			
+			//StartButton Function
+		 Startbutton();
+		 
+		 function Startbutton() {
+		  $(_this.Element).empty();
+                var divExt = document.createElement("div");
+                divExt.setAttribute("id", divName);
+                divExt.style.width = _this.GetWidth() - 10 + 'px';
+                divExt.style.height = _this.GetHeight() + 'px';
+                divExt.setAttribute("class", "Div1");
+		 
+		 //creation of a button
+		  var divButtonExt= document.createElement("div");
+                divButtonExt.setAttribute("class", "Div2");
+		
+		 var divButton = document.createElement("a");
+                divButton.setAttribute("href", "javascript:void(0);");
+                divButton.setAttribute("id", "button_" + divName);
+                divButton.setAttribute("class", "TestButton");
+                divButton.innerText= ButtonLabel; 
+				//divButton.setAttribute("src",template_path+"Icon.PNG");
+				//divButton.setAttribute=("src", template_path +"photo.jpg");		 
+                divButton.addEventListener("click", button_click, false);
+				//alert(template_path+"Icon.PNG");
+                divButtonExt.appendChild(divButton);
+		 divExt.appendChild(divButtonExt);
+		 _this.Element.appendChild(divExt);
+		 
+		 
+		}
+	};
+});

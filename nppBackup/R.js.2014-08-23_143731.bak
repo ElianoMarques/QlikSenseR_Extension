@@ -1,0 +1,117 @@
+define(["jquery", "text!./R.css","text!./opencpu-0.4.js"], function($, cssContent) {'use strict';
+	$("<style>").html(cssContent).appendTo("head");
+	return {
+		initialProperties : {
+			version: 1.0,
+			qHyperCubeDef : {
+				qDimensions : [],
+				qMeasures : [],
+				qInitialDataFetch : [{
+					qWidth : 10,
+					qHeight : 50
+				}]
+			}
+		},
+		definition : {
+			type : "items",
+			component : "accordion",
+			items : {
+				dimensions : {
+					uses : "dimensions",
+					min : 1
+				},
+				measures : {
+					uses : "measures",
+					min : 0
+				},
+				sorting : {
+					uses : "sorting"
+				},
+				settings : {
+					uses : "settings",
+					items : {
+						initFetchRows : {
+							ref : "qHyperCubeDef.qInitialDataFetch.0.qHeight",
+							label : "Initial fetch rows",
+							type : "number",
+							defaultValue : 50
+						},
+					}
+				}
+			}
+		},
+		snapshot : {
+			canTakeSnapshot : true
+		},
+		paint : function($element) {
+		 //add parameters to this function 
+		 function postData() {
+				html += "<h3>Running R code </h3>";
+				self.paint($element);
+				ocpu.seturl("http://localhost:7259/ocpu/library/ModellingUtils/R");
+                var req = ocpu.call("refresh.forecast", {
+				data: "Modelling",
+				path: "C://DemoQlikR//"
+				}, function(session) { 
+				hideLoadingPanel();
+				});
+				req.fail(function() {
+										alert("R returned an error: " + req.responseText); 
+										});
+				req.done(function() {
+										alert("R finished" ); 
+										});
+            }
+		 
+			var html = "<table><thead><tr>", self = this, lastrow = 0, morebutton = false;
+			//render titles
+			$.each(this.backendApi.getDimensionInfos(), function(key, value) {
+				html += '<th>' + value.qFallbackTitle + '</th>';
+			});
+			$.each(this.backendApi.getMeasureInfos(), function(key, value) {
+				html += '<th>' + value.qFallbackTitle + '</th>';
+			});
+			html += "</tr></thead><tbody>";
+			//render data
+			this.backendApi.eachDataRow(function(rownum, row) {
+				lastrow = rownum;
+				html += '<tr>';
+				$.each(row, function(key, cell) {
+					if(cell.qIsOtherCell) {
+						cell.qText = self.backendApi.getDimensionInfos()[key].othersLabel;
+					}
+					html += '<td';
+					if(!isNaN(cell.qNum)) {
+						html += " class='numeric'";
+					}
+					html += '>' + cell.qText + '</td>';
+				});
+				html += '</tr>';
+			});
+			html += "</tbody></table>";
+			//add 'more...' button
+			if(this.backendApi.getRowCount() > lastrow + 1) {
+				html += "<button id='more'>More...</button>";
+				morebutton = true;
+			}
+			html += "<button id='RunR'>Run R...</button>";
+			$element.html(html);
+			if(morebutton) {
+				var requestPage = [{
+					qTop : lastrow + 1,
+					qLeft : 0,
+					qWidth : 10, //should be # of columns
+					qHeight : Math.min(50, this.backendApi.getRowCount() - lastrow)
+				}];
+				$element.find("#more").on("qv-activate", function() {
+					self.backendApi.getData(requestPage).then(function(dataPages) {
+						self.paint($element);
+					});
+				});
+				$element.find("#RunR").on("qv-activate", function() {
+				postData();
+				});
+			}
+		}
+	};
+});

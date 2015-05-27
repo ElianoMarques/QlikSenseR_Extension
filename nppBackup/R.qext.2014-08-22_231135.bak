@@ -1,9 +1,0 @@
-{
-	"name" : "R Extension",
-	"description" : "R Extension Example",
-	"icon" : "table",
-	"type" : "visualization",
-	"version": "1.0",
-	"preview" : "table",
-	"author": "Eliano Marques"
-}
